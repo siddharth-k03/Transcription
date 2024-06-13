@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Audio Transcription</title>
+</head>
+<body>
+  <h1>Audio Transcription using WebRTC and Whisper</h1>
+  <button id="recordButton">Record</button>
+  <div id="transcription"></div>
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    const recordButton = document.getElementById('recordButton');
+    const transcriptionDiv = document.getElementById('transcription');
+
+    recordButton.addEventListener('click', async () => {
+      if (recordButton.textContent === 'Record') {
+        recordButton.textContent = 'Stop';
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // Create a new RTCPeerConnection
+        const peerConnection = new RTCPeerConnection();
+
+        // Add the audio stream to the peer connection
+        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          audioChunks = [];
+          sendAudioToServer(audioBlob);
+        };
+        mediaRecorder.start();
+      } else {
+        recordButton.textContent = 'Record';
+        mediaRecorder.stop();
+      }
+    });
+
+    async function sendAudioToServer(audioBlob) {
+      const formData = new FormData();
+      formData.append('audio', audioBlob);
+      const response = await fetch('/transcribe', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      transcriptionDiv.textContent = result.transcription;
+    }
+  </script>
+</body>
+</html>
