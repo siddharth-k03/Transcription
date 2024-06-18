@@ -2,11 +2,14 @@
 <html>
 <head>
     <title>Audio Transcription</title>
+    <link rel="stylesheet" type="text/css" href="styles.css"> <!-- Link to the external CSS file -->
 </head>
 <body>
-    <h1>Record audio for transcription</h1>
-    <button id="recordButton">Record</button>
-    <button id="stopButton" disabled>Stop</button>
+    <h1>Record audio for Transcription!</h1>
+    <div class="button-container">
+        <button id="recordButton">Start Recording.</button>
+        <button id="stopButton" disabled>Stop Recording.</button>
+    </div>
     <div id="transcription"></div>
 
     <script>
@@ -59,7 +62,8 @@
 
                     const transcribeResult = await transcribeResponse.json();
                     console.log('Transcription received from backend:', transcribeResult.transcription);
-                    document.getElementById('transcription').innerText = transcribeResult.transcription;
+                    const transcriptionDiv = document.getElementById('transcription');
+                    transcriptionDiv.innerHTML += `<p>${transcribeResult.transcription}</p>`; // Append new transcription
                 } catch (error) {
                     console.error('Error:', error);
                     alert('An error occurred while processing your request.');

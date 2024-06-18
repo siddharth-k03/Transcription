@@ -6,7 +6,7 @@ from flask_cors import CORS  # Import CORS
 import whisper
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all origins
+CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for all origins
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'wav', 'mp3', 'ogg', 'flac'}
 
@@ -34,7 +34,9 @@ def upload_file():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        print(f"Saving file to {filepath}")  # Debug print
         file.save(filepath)
+        print(f"File saved to {filepath}")  # Debug print
         return jsonify({'filepath': filepath}), 200
     else:
         return jsonify({'error': 'Invalid file type'}), 400
@@ -47,7 +49,11 @@ def transcribe():
     if not filepath or not os.path.exists(filepath):
         return jsonify({'error': 'File path is missing or invalid'}), 400
     
-    result = model.transcribe(filepath)
+    # Prepare the file path
+    file_path = os.path.join("uploads", "recording.wav")
+
+    print(f"Transcribing file at {filepath}")  # Debug print
+    result = model.transcribe(file_path)
     transcription = result['text']
     
     return jsonify({'transcription': transcription}), 200
